@@ -1,0 +1,45 @@
+import face_recognition
+import os
+import matplotlib.pyplot as plt
+
+folder_path = 'C:/Users/hp/Desktop/project/images'
+
+known_face_encodings = []
+known_face_names = []
+known_face_images = []
+
+for filename in os.listdir(folder_path):
+    if filename.endswith(".jpeg"):  
+        image_path = os.path.join(folder_path, filename)
+        image = face_recognition.load_image_file(image_path)
+        encoding = face_recognition.face_encodings(image)
+        if len(encoding) > 0:
+            known_face_encodings.append(encoding[0])
+            known_face_names.append(filename)
+            known_face_images.append(image)
+
+unknown_image_path = 'download.jpeg'
+unknown_image = face_recognition.load_image_file(unknown_image_path)
+unknown_encoding = face_recognition.face_encodings(unknown_image)
+
+if len(unknown_encoding) > 0:
+    for i, unknown_face_encoding in enumerate(unknown_encoding):
+        results = face_recognition.compare_faces(known_face_encodings, unknown_face_encoding)
+        matched_images = [known_face_images[idx] for idx, result in enumerate(results) if result]
+
+        if matched_images:
+            plt.figure(figsize=(8, 6))
+            plt.subplot(1, len(matched_images) + 1, 1)
+            plt.imshow(unknown_image)
+            plt.title('Unknown Image')
+
+            for idx, matched_image in enumerate(matched_images):
+                plt.subplot(1, len(matched_images) + 1, idx + 2)
+                plt.imshow(matched_image)
+                plt.title(f'Matched:')
+            plt.tight_layout()
+            plt.show()
+        else:
+            print(f"No match found for the unknown face in {os.path.basename(unknown_image_path)}")
+else:
+    print("No face detected in the unknown image.")
